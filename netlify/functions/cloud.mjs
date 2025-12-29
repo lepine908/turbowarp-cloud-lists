@@ -36,6 +36,17 @@ export default async (req) => {
         { headers }
       );
     }
+
+    // élément (index commence à 1)
+    if (body.action === "element") {
+      const liste = data[body.liste] || [];
+      const index = Number(body.index) - 1;
+      const valeur = liste[index] ?? '';
+      return new Response(
+        JSON.stringify({ valeur }),
+        { headers }
+      );
+    }
   }
 
   return new Response(JSON.stringify({ ok: false }), { headers });
