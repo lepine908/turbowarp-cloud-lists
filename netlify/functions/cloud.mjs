@@ -9,14 +9,33 @@ const headers = {
   "Content-Type": "application/json"
 };
 
+// stockage temporaire (pour les tests)
+let data = {};
+
 export default async (req) => {
-  // Réponse spéciale pour le préflight CORS
   if (req.method === "OPTIONS") {
     return new Response(null, { status: 204, headers });
   }
 
+  if (req.method === "POST") {
+    const body = await req.json();
+
+    if (body.action === "ajouter") {
+      if (!data[body.liste]) {
+        data[body.liste] = [];
+      }
+
+      data[body.liste].push(body.valeur);
+
+      return new Response(
+        JSON.stringify({ ok: true }),
+        { headers }
+      );
+    }
+  }
+
   return new Response(
-    JSON.stringify({ ok: true, message: "CORS fixed, cloud works" }),
+    JSON.stringify({ ok: false }),
     { headers }
   );
 };
