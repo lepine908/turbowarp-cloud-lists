@@ -9,7 +9,6 @@ const headers = {
   "Content-Type": "application/json"
 };
 
-// stockage temporaire (pour les tests)
 let data = {};
 
 export default async (req) => {
@@ -20,22 +19,24 @@ export default async (req) => {
   if (req.method === "POST") {
     const body = await req.json();
 
+    // ajouter
     if (body.action === "ajouter") {
       if (!data[body.liste]) {
         data[body.liste] = [];
       }
-
       data[body.liste].push(body.valeur);
+      return new Response(JSON.stringify({ ok: true }), { headers });
+    }
 
+    // longueur
+    if (body.action === "longueur") {
+      const liste = data[body.liste] || [];
       return new Response(
-        JSON.stringify({ ok: true }),
+        JSON.stringify({ valeur: liste.length }),
         { headers }
       );
     }
   }
 
-  return new Response(
-    JSON.stringify({ ok: false }),
-    { headers }
-  );
+  return new Response(JSON.stringify({ ok: false }), { headers });
 };
