@@ -1,7 +1,5 @@
-// Mémoire cloud (persistante tant que le serveur n'est pas redéployé)
 const cloudLists = {};
 
-// CORS
 const headers = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "Content-Type",
@@ -21,82 +19,54 @@ export default async (req) => {
     return new Response("Method Not Allowed", { status: 405 });
   }
 
-  const body = await req.json();
-  const { action, list, value, index } = body;
+  const { action, list, value, index } = await req.json();
 
-  if (!list) {
-    return new Response(
-      JSON.stringify({ error: "No list specified" }),
-      { status: 400, headers }
-    );
-  }
+  if (!cloudLists[list]) cloudLists[list] = [];
 
-  // Crée la liste si elle n'existe pas
-  if (!cloudLists[list]) {
-    cloudLists[list] = [];
-  }
-
-  // 🔹 ACTIONS
   switch (action) {
 
     case "add":
       cloudLists[list].push(String(value));
-      return new Response(
-        JSON.stringify({ ok: true }),
-        { headers }
-      );
+      break;
 
     case "remove":
       if (index >= 0 && index < cloudLists[list].length) {
         cloudLists[list].splice(index, 1);
       }
-      return new Response(
-        JSON.stringify({ ok: true }),
-        { headers }
-      );
-
-    case "length":
-      return new Response(
-        JSON.stringify({ length: cloudLists[list].length }),
-        { headers }
-      );
-
-    case "get":
-      return new Response(
-        JSON.stringify({
-          value: cloudLists[list][index] ?? ""
-        }),
-        { headers }
-      );
-
-    case "set":
-      if (index >= 0) {
-        cloudLists[list][index] = String(value);
-      }
-      return new Response(
-        JSON.stringify({ ok: true }),
-        { headers }
-      );
+      break;
 
     case "clear":
       cloudLists[list] = [];
-      return new Response(
-        JSON.stringify({ ok: true }),
-        { headers }
-      );
+      break;
 
-    case "exists":
-      return new Response(
-        JSON.stringify({
-          exists: Array.isArray(cloudLists[list])
-        }),
-        { headers }
-      );
+    case "insert":
+      cloudLists[list].splice(index, 0, String(value));
+      break;
 
-    default:
-      return new Response(
-        JSON.stringify({ error: "Unknown action" }),
-        { status: 400, headers }
-      );
+    case "set":
+      cloudLists[list][index] = String(value);
+      break;
+
+    case "get":
+      return new Response(JSON.stringify({
+        value: cloudLists[list][index] ?? ""
+      }), { headers });
+
+    case "indexOf":
+      return new Response(JSON.stringify({
+        index: cloudLists[list].indexOf(String(value)) + 1
+      }), { headers });
+
+    case "length":
+      return new Response(JSON.stringify({
+        length: cloudLists[list].length
+      }), { headers });
+
+    case "contains":
+      return new Response(JSON.stringify({
+        contains: cloudLists[list].includes(String(value))
+      }), { headers });
   }
+
+  return new Response(JSON.stringify({ ok: true }), { headers });
 };
